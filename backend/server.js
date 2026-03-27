@@ -17,10 +17,16 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigins = [
+  'http://localhost:5173', 
+  'http://localhost:5174', 
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 // Add socket.io
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    origin: allowedOrigins,
     credentials: true,
   }
 });
@@ -41,7 +47,7 @@ io.on('connection', (socket) => {
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'], // Allow both potential Vite ports
+    origin: allowedOrigins,
     credentials: true,
 }));
 app.use(express.json());
