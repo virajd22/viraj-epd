@@ -76,15 +76,17 @@ const Tasks = () => {
   
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [groups, setGroups] = useState([]); // NEW
   const [selectedProject, setSelectedProject] = useState(projectId || '');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ title: '', description: '', priority: 'Medium', deadline: '' });
+  const [formData, setFormData] = useState({ title: '', description: '', priority: 'Medium', deadline: '', group: '' }); // NEW: Added group
   
   const sensors = useSensors(useSensor(MouseSensor, { activationConstraint: { distance: 5 } }), useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }));
 
   useEffect(() => {
     fetchProjects();
+    fetchGroups(); // NEW
   }, []);
 
   useEffect(() => {
@@ -102,6 +104,13 @@ const Tasks = () => {
       console.error(e);
       setLoading(false);
     }
+  };
+
+  const fetchGroups = async () => {
+    try {
+      const res = await api.get('/groups');
+      setGroups(res.data);
+    } catch (e) { console.error(e); }
   };
 
   const fetchTasks = async () => {
@@ -134,10 +143,12 @@ const Tasks = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/tasks', { ...formData, project: selectedProject });
+      const taskData = { ...formData, project: selectedProject };
+      if (formData.group === '') delete taskData.group; // Don't send empty string
+      await api.post('/tasks', taskData);
       setShowModal(false);
       fetchTasks();
-      setFormData({ title: '', description: '', priority: 'Medium', deadline: '' });
+      setFormData({ title: '', description: '', priority: 'Medium', deadline: '', group: '' });
     } catch (e) { console.error(e); }
   };
 
@@ -205,9 +216,16 @@ const Tasks = () => {
                    </select>
                  </div>
                  <div>
-                   <label className="block text-sm font-bold text-dark mb-1">Deadline (Optional)</label>
-                   <input type="date" className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary transition" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} />
+                   <label className="block text-sm font-bold text-dark mb-1">Assign to Group (Optional)</label>
+                   <select className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary transition" value={formData.group} onChange={e => setFormData({...formData, group: e.target.value})}>
+                     <option value="">None</option>
+                     {groups.map(g => <option key={g._id} value={g._id}>{g.name}</option>)}
+                   </select>
                  </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-dark mb-1">Deadline (Optional)</label>
+                <input type="date" className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary transition" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} />
               </div>
               <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
                 <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2.5 font-semibold text-secondary hover:bg-gray-100 rounded-lg transition">Cancel</button>

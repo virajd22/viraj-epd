@@ -1,14 +1,19 @@
 const Task = require('../models/Task');
+const Group = require('../models/Group');
 
 exports.createTask = async (req, res) => {
   try {
-    const { title, description, project, assignee, priority, deadline, tags } = req.body;
+    const { title, description, project, group, assignee, priority, deadline, tags } = req.body;
     
     const history = [{ action: 'Task Created' }];
 
     const task = await Task.create({
-      title, description, project, assignee, priority, deadline, tags, history
+      title, description, project, group, assignee, priority, deadline, tags, history
     });
+
+    if (group) {
+        await Group.findByIdAndUpdate(group, { $push: { tasks: task._id } });
+    }
 
     res.status(201).json(task);
   } catch (error) {
@@ -20,6 +25,19 @@ exports.getTasksByProject = async (req, res) => {
   try {
     const tasks = await Task.find({ project: req.params.projectId })
       .populate('assignee', 'name email')
+      .populate('group', 'name')
+      .populate('project', 'name');
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getTasksByGroup = async (req, res) => {
+  try {
+    const tasks = await Task.find({ group: req.params.groupId })
+      .populate('assignee', 'name email')
+      .populate('group', 'name')
       .populate('project', 'name');
     res.json(tasks);
   } catch (error) {
@@ -31,6 +49,7 @@ exports.getTaskById = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id)
       .populate('assignee', 'name email')
+      .populate('group', 'name')
       .populate('project', 'name');
     if (!task) return res.status(404).json({ message: 'Task not found' });
     res.json(task);

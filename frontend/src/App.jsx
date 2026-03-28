@@ -15,6 +15,11 @@ import Collaboration from './pages/Collaboration';
 import Documents from './pages/Documents';
 import Reports from './pages/Reports';
 
+// NEW PAGES
+import Groups from './pages/Groups';
+import GroupDetails from './pages/GroupDetails';
+import PrivateChat from './pages/PrivateChat';
+
 // Placeholder Pages
 const Unauthorized = () => <div className="p-8 text-center text-2xl text-red-500">Unauthorized</div>;
 
@@ -36,7 +41,10 @@ function App() {
             <Route path="/projects/:id" element={<ProjectDetails />} />
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/calendar" element={<CalendarView />} />
+            <Route path="/groups" element={<Groups />} />
+            <Route path="/groups/:id" element={<GroupDetails />} />
             <Route path="/collaboration" element={<Collaboration />} />
+            <Route path="/chat" element={<PrivateChat />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/reports" element={<Reports />} />
             {/* We will nest other authenticated routes here later */}

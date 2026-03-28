@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, FolderGit2, CheckSquare, Calendar, MessageSquare, FileText, BarChart3, LogOut, Hexagon } from 'lucide-react';
+import { Home, FolderGit2, CheckSquare, Calendar, MessageSquare, FileText, BarChart3, LogOut, Hexagon, Users, Send } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 const Sidebar = () => {
@@ -9,10 +9,12 @@ const Sidebar = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <Home size={20} /> },
+    { name: 'Groups', path: '/groups', icon: <Users size={20} /> },
     { name: 'Projects', path: '/projects', icon: <FolderGit2 size={20} /> },
     { name: 'Tasks', path: '/tasks', icon: <CheckSquare size={20} /> },
     { name: 'Calendar', path: '/calendar', icon: <Calendar size={20} /> },
     { name: 'Collaboration', path: '/collaboration', icon: <MessageSquare size={20} /> },
+    { name: 'Private Chat', path: '/chat', icon: <Send size={20} /> },
     { name: 'Documents', path: '/documents', icon: <FileText size={20} /> },
     { name: 'Reports', path: '/reports', icon: <BarChart3 size={20} /> },
   ];

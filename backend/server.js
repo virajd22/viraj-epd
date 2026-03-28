@@ -36,8 +36,14 @@ io.on('connection', (socket) => {
   console.log('Socket.io connected:', socket.id);
   
   socket.on('join_project', (projectId) => {
-    socket.join(projectId);
-    console.log(`Socket ${socket.id} joined project room: ${projectId}`);
+    socket.join(projectId.toString());
+    console.log(`Socket ${socket.id} joined project/group room: ${projectId}`);
+  });
+  
+  // NEW: Join personal room for private messages
+  socket.on('join_personal', (userId) => {
+    socket.join(userId.toString());
+    console.log(`Socket ${socket.id} joined personal room: ${userId}`);
   });
 
   socket.on('disconnect', () => {
@@ -68,6 +74,8 @@ app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/collaboration', require('./routes/collaborationRoutes'));
 app.use('/api/documents', require('./routes/documentRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
+app.use('/api/groups', require('./routes/groupRoutes')); // NEW
+app.use('/api/chat', require('./routes/chatRoutes')); // NEW
 
 const PORT = process.env.PORT || 5000;
 
