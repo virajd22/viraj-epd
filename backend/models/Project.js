@@ -8,7 +8,8 @@ const ProjectSchema = new mongoose.Schema({
   grade: { type: String, enum: ['A+', 'A', 'B+', 'B', 'C', 'D', 'F', 'Pending'], default: 'Pending' },
   facultyFeedback: { type: String },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  assignedGroups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }] // NEW: For assigning project to groups
 }, { timestamps: true });
 
 module.exports = mongoose.model('Project', ProjectSchema);

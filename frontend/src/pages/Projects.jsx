@@ -8,13 +8,24 @@ import AnimatedPage from '../components/AnimatedPage';
 const Projects = () => {
   const { user } = useAuthStore();
   const [projects, setProjects] = useState([]);
+  const [groups, setGroups] = useState([]); // NEW: for assigning to groups
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '', deadline: '' });
+  const [formData, setFormData] = useState({ name: '', description: '', deadline: '', assignedGroup: '' }); // NEW: added assignedGroup
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+    if (user?.role === 'Admin') fetchGroups(); // Fetch groups if admin
+  }, [user]);
+
+  const fetchGroups = async () => {
+    try {
+      const { data } = await api.get('/groups');
+      setGroups(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -30,10 +41,16 @@ const Projects = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/projects', formData);
+      const payload = { ...formData };
+      if (formData.assignedGroup) {
+        payload.assignedGroups = [formData.assignedGroup]; // Wrap in array as backend expects an array
+      }
+      delete payload.assignedGroup;
+
+      await api.post('/projects', payload);
       setShowModal(false);
       fetchProjects();
-      setFormData({ name: '', description: '', deadline: '' });
+      setFormData({ name: '', description: '', deadline: '', assignedGroup: '' });
     } catch (error) {
       console.error(error);
     }
@@ -76,10 +93,17 @@ const Projects = () => {
             <p className="text-secondary text-sm mb-6 line-clamp-2 leading-relaxed">{project.description || 'No description provided.'}</p>
             
             <div className="flex items-center justify-between text-sm text-secondary font-semibold border-t border-gray-100 pt-4 mt-auto">
-              <div className="flex items-center space-x-2 bg-gray-50 px-2 py-1 rounded-md">
-                <Users size={16} className="text-primary" />
-                <span>{project.members?.length || 0} Members</span>
-              </div>
+              {project.assignedGroups && project.assignedGroups.length > 0 ? (
+                <div className="flex items-center space-x-2 bg-blue-50 px-2 py-1 rounded-md text-primary">
+                  <Users size={16} />
+                  <span className="truncate max-w-[100px]">{project.assignedGroups[0].name}</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 bg-gray-50 px-2 py-1 rounded-md">
+                  <Users size={16} className="text-secondary" />
+                  <span>{project.members?.length || 0} Members</span>
+                </div>
+              )}
               <div className="flex items-center space-x-2 bg-gray-50 px-2 py-1 rounded-md">
                 <Calendar size={16} className="text-orange-500" />
                 <span>{new Date(project.deadline).toLocaleDateString()}</span>
@@ -110,6 +134,16 @@ const Projects = () => {
                 <label className="block text-sm font-bold text-dark mb-1">Deadline</label>
                 <input required type="date" className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
                   value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-dark mb-1">Assign to Group (Optional)</label>
+                <select className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
+                  value={formData.assignedGroup} onChange={e => setFormData({...formData, assignedGroup: e.target.value})}>
+                  <option value="">No Group (Assign Individually)</option>
+                  {groups.map(g => (
+                    <option key={g._id} value={g._id}>{g.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="flex justify-end space-x-3 pt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2.5 font-semibold text-secondary hover:bg-gray-100 rounded-lg transition">Cancel</button>

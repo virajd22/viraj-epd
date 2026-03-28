@@ -9,6 +9,7 @@ const ProjectDetails = () => {
   const { id } = useParams();
   const { user } = useAuthStore();
   const [project, setProject] = useState(null);
+  const [groupProgress, setGroupProgress] = useState([]); // NEW
   const [loading, setLoading] = useState(true);
   
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
@@ -19,6 +20,10 @@ const ProjectDetails = () => {
       const res = await api.get(`/projects/${id}`);
       setProject(res.data);
       if (res.data.grade) setEvalData({ grade: res.data.grade, facultyFeedback: res.data.facultyFeedback || '' });
+
+      // Fetch group progress
+      const progressRes = await api.get(`/projects/${id}/progress`);
+      setGroupProgress(progressRes.data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -113,6 +118,31 @@ const ProjectDetails = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
 
+          {/* Group Progress Tracking Section */}
+          {groupProgress.length > 0 && (
+            <div className="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
+              <h2 className="text-2xl font-black text-dark mb-6 flex items-center border-b border-gray-100 pb-4">
+                <Star size={28} className="mr-3 text-orange-500"/> Group Progress Tracking
+              </h2>
+              <div className="space-y-6">
+                {groupProgress.map((gp, idx) => (
+                  <div key={idx} className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="font-bold text-lg text-dark">{gp.group.name}</h3>
+                      <span className="font-black text-primary text-xl">{gp.progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3 mb-3 shrink-0 overflow-hidden">
+                      <div className="bg-gradient-to-r from-primary to-blue-500 h-3 rounded-full transition-all duration-1000 ease-out" style={{ width: `${gp.progress}%` }}></div>
+                    </div>
+                    <p className="text-secondary text-sm font-medium">
+                      Completed {gp.completedTasks} out of {gp.totalTasks} assigned tasks
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Academic Evaluation Section */}
           <div className="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden relative group hover:shadow-lg transition-all">
             <h2 className="text-2xl font-black text-dark mb-6 flex items-center border-b border-gray-100 pb-4">
@@ -159,11 +189,27 @@ const ProjectDetails = () => {
           </div>
         </div>
 
-        {/* Team Members */}
+        {/* Team Members / Assigned Groups */}
         <div className="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 h-fit sticky top-6">
            <h2 className="text-2xl font-black text-dark mb-6 flex items-center border-b border-gray-100 pb-4">
-             <Users size={28} className="mr-3 text-orange-400"/> Engineering Team
+             <Users size={28} className="mr-3 text-orange-400"/> Engineering Entities
            </h2>
+
+           {project.assignedGroups && project.assignedGroups.length > 0 && (
+             <div className="mb-6">
+               <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Assigned Groups</p>
+               <ul className="space-y-3">
+                 {project.assignedGroups.map(g => (
+                   <li key={g._id} className="flex flex-col p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
+                     <span className="font-bold text-dark">{g.name}</span>
+                     {user?.role === 'Admin' && <span className="text-xs text-primary font-mono mt-1">ID: {g._id.toString().substring(18)}</span>}
+                   </li>
+                 ))}
+               </ul>
+             </div>
+           )}
+
+           <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Individual Members</p>
            {project.members?.length === 0 ? (
              <div className="py-8 text-center bg-orange-50/50 rounded-2xl border border-orange-100">
                <p className="text-orange-600/80 font-bold">No engineers assigned.</p>
