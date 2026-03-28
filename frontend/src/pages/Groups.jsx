@@ -67,56 +67,52 @@ const Groups = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {user?.role === 'Admin' && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white/70 backdrop-blur-xl p-6 rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
-          >
-             <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Plus className="text-primary"/> Create New Group</h2>
-             <form onSubmit={handleCreateGroup} className="flex gap-2">
-               <input 
-                 type="text" 
-                 placeholder="Group Name" 
-                 value={newGroupName}
-                 onChange={(e) => setNewGroupName(e.target.value)}
-                 className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-               />
-               <button 
-                 type="submit" 
-                 disabled={isCreating}
-                 className="bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-blue-500/25"
-               >
-                 Create
-               </button>
-             </form>
-          </motion.div>
-        )}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-white/70 backdrop-blur-xl p-6 rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+        >
+           <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Plus className="text-primary"/> Create New Group</h2>
+           <form onSubmit={handleCreateGroup} className="flex gap-2">
+             <input 
+               type="text" 
+               placeholder="Group Name" 
+               value={newGroupName}
+               onChange={(e) => setNewGroupName(e.target.value)}
+               className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+             />
+             <button 
+               type="submit" 
+               disabled={isCreating}
+               className="bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-blue-500/25"
+             >
+               Create
+             </button>
+           </form>
+        </motion.div>
 
-        {user?.role !== 'Admin' && (
-          <motion.div 
-             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-             className="bg-white/70 backdrop-blur-xl p-6 rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
-          >
-             <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Key className="text-orange-500"/> Join a Group</h2>
-             <form onSubmit={handleJoinGroup} className="flex gap-2">
-               <input 
-                 type="text" 
-                 placeholder="Enter 6-digit Join Code" 
-                 value={joinCodeInput}
-                 onChange={(e) => setJoinCodeInput(e.target.value)}
-                 className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all uppercase"
-                 maxLength={6}
-               />
-               <button 
-                 type="submit" 
-                 disabled={isJoining}
-                 className="bg-orange-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/25"
-               >
-                 Join
-               </button>
-             </form>
-          </motion.div>
-        )}
+        <motion.div 
+           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+           className="bg-white/70 backdrop-blur-xl p-6 rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+        >
+           <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Key className="text-orange-500"/> Join a Group</h2>
+           <form onSubmit={handleJoinGroup} className="flex gap-2">
+             <input 
+               type="text" 
+               placeholder="Enter 6-digit Join Code" 
+               value={joinCodeInput}
+               onChange={(e) => setJoinCodeInput(e.target.value)}
+               className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all uppercase"
+               maxLength={6}
+             />
+             <button 
+               type="submit" 
+               disabled={isJoining}
+               className="bg-orange-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/25"
+             >
+               Join
+             </button>
+           </form>
+        </motion.div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

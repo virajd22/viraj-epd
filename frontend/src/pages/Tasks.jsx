@@ -143,8 +143,11 @@ const Tasks = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      const taskData = { ...formData, project: selectedProject };
-      if (formData.group === '') delete taskData.group; // Don't send empty string
+      const taskData = { ...formData };
+      if (selectedProject) taskData.project = selectedProject;
+      if (formData.group === '') delete taskData.group;
+      else taskData.group = formData.group;
+
       await api.post('/tasks', taskData);
       setShowModal(false);
       fetchTasks();

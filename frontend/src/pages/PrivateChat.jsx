@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Send, User as UserIcon, Search } from 'lucide-react';
+import { Send, User as UserIcon, Search, MessageSquare } from 'lucide-react';
 import api from '../api/axiosConfig';
 import { useAuthStore } from '../store/authStore';
 import io from 'socket.io-client';
