@@ -78,12 +78,45 @@ const ProjectDetails = () => {
               {project.status}
             </span>
             {user?.role === 'Admin' && (
-              <button 
-                onClick={() => setShowEvaluationModal(true)}
-                className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-full text-sm font-bold shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2 whitespace-nowrap scale-100 hover:scale-105"
-              >
-                <Award size={18} /> Evaluate Project
-              </button>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={async () => {
+                    if(window.confirm('Are you sure you want to terminate this project? This will mark it as Terminated.')) {
+                      try {
+                        await api.put(`/projects/${id}`, { status: 'Terminated' });
+                        fetchProject();
+                      } catch (err) {
+                        console.error('Failed to terminate project', err);
+                      }
+                    }
+                  }}
+                  className="px-6 py-2.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-full text-sm font-bold shadow-sm transition-all"
+                >
+                  Terminate
+                </button>
+                <button 
+                  onClick={async () => {
+                    if(window.confirm('Are you sure you want to permanently delete this project?')) {
+                      try {
+                        await api.delete(`/projects/${id}`);
+                        window.location.href = '/projects';
+                      } catch (err) {
+                        console.error('Failed to delete project', err);
+                        alert('Failed to delete project');
+                      }
+                    }
+                  }}
+                  className="px-6 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-full text-sm font-bold shadow-sm transition-all"
+                >
+                  Delete
+                </button>
+                <button 
+                  onClick={() => setShowEvaluationModal(true)}
+                  className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-full text-sm font-bold shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2 whitespace-nowrap scale-100 hover:scale-105"
+                >
+                  <Award size={18} /> Evaluate Project
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -191,6 +224,7 @@ const ProjectDetails = () => {
         </div>
 
         {/* Team Members / Assigned Groups */}
+        {user?.role === 'Admin' && (
         <div className="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 h-fit sticky top-6">
            <h2 className="text-2xl font-black text-dark mb-6 flex items-center border-b border-gray-100 pb-4">
              <Users size={28} className="mr-3 text-orange-400"/> Engineering Entities
@@ -203,7 +237,7 @@ const ProjectDetails = () => {
                  {project.assignedGroups.map(g => (
                    <li key={g._id} className="flex flex-col p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
                      <span className="font-bold text-dark">{g.name}</span>
-                     {user?.role === 'Admin' && <span className="text-xs text-primary font-mono mt-1">ID: {g._id.toString().substring(18)}</span>}
+                     <span className="text-xs text-primary font-mono mt-1">ID: {g._id.toString().substring(18)}</span>
                    </li>
                  ))}
                </ul>
@@ -231,6 +265,7 @@ const ProjectDetails = () => {
              </ul>
            )}
         </div>
+        )}
       </div>
 
       {showEvaluationModal && (

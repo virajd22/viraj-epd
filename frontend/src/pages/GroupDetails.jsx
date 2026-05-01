@@ -91,8 +91,26 @@ const GroupDetails = () => {
           <p className="text-secondary mt-1">Managed by {group.admin?.name}</p>
         </div>
         {user?.role === 'Admin' && (
-          <div className="bg-white/70 px-4 py-2 rounded-xl text-primary font-mono shadow-sm border border-blue-100">
-            Join Code: <span className="font-bold">{group.joinCode}</span>
+          <div className="flex gap-3">
+            <div className="bg-white/70 px-4 py-2 rounded-xl text-primary font-mono shadow-sm border border-blue-100 flex items-center">
+              Join Code: <span className="font-bold ml-1">{group.joinCode}</span>
+            </div>
+            <button
+               onClick={async () => {
+                 if(window.confirm('Are you sure you want to permanently delete this group?')) {
+                   try {
+                     await api.delete(`/groups/${group._id}`);
+                     window.location.href = '/groups';
+                   } catch (err) {
+                     console.error('Failed to delete group', err);
+                     alert('Failed to delete group');
+                   }
+                 }
+               }}
+               className="bg-red-50 text-red-600 hover:bg-red-500 hover:text-white px-4 py-2 rounded-xl font-bold transition-colors shadow-sm border border-red-100"
+            >
+               Delete Group
+            </button>
           </div>
         )}
       </div>
