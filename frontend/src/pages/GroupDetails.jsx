@@ -125,8 +125,13 @@ const GroupDetails = () => {
                      <div>
                        <h3 className="font-bold text-dark">{task.title}</h3>
                        <div className="flex items-center gap-3 text-xs text-secondary mt-2">
-                         <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md"><Clock size={12}/> {task.status}</span>
-                         <span className="flex items-center gap-1 bg-red-50 text-red-600 px-2 py-1 rounded-md"><CalendarIcon size={12}/> {new Date(task.deadline).toLocaleDateString()}</span>
+                         <span className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+                           task.status === 'In Review' ? 'bg-yellow-100 text-yellow-800' :
+                           task.status === 'Done' ? 'bg-green-100 text-green-800' :
+                           task.status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                           'bg-blue-50 text-blue-800'
+                         }`}><Clock size={12}/> {task.status}</span>
+                         <span className="flex items-center gap-1 bg-gray-50 text-gray-600 px-2 py-1 rounded-md"><CalendarIcon size={12}/> {new Date(task.deadline).toLocaleDateString()}</span>
                        </div>
                      </div>
                    </div>

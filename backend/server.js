@@ -76,6 +76,7 @@ app.use('/api/documents', require('./routes/documentRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/groups', require('./routes/groupRoutes')); // NEW
 app.use('/api/chat', require('./routes/chatRoutes')); // NEW
+app.use('/api/notifications', require('./routes/notificationRoutes')); // NEW
 
 const PORT = process.env.PORT || 5000;
 

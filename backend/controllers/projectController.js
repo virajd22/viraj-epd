@@ -104,12 +104,14 @@ exports.getProjectProgress = async (req, res) => {
       const tasks = await Task.find({ project: project._id, group: group._id });
       const totalTasks = tasks.length;
       const completedTasks = tasks.filter(t => t.status === 'Done').length;
+      const inReviewTasks = tasks.filter(t => t.status === 'In Review').length;
       const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
       progressData.push({
         group: { _id: group._id, name: group.name },
         totalTasks,
         completedTasks,
+        inReviewTasks,
         progress
       });
     }

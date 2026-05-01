@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createTask, getTasksByProject, getTasksByGroup, getTaskById, updateTask, deleteTask } = require('../controllers/taskController');
+const { createTask, getTasksByProject, getTasksByGroup, getTaskById, updateTask, deleteTask, submitTask, evaluateTask } = require('../controllers/taskController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.route('/')
@@ -11,6 +11,12 @@ router.route('/project/:projectId')
 
 router.route('/group/:groupId')
   .get(protect, getTasksByGroup);
+
+router.route('/:id/submit')
+  .put(protect, authorize('Student', 'Team Leader', 'Admin'), submitTask);
+
+router.route('/:id/evaluate')
+  .put(protect, authorize('Admin'), evaluateTask);
 
 router.route('/:id')
   .get(protect, getTaskById)

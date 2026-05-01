@@ -24,6 +24,12 @@ const TaskCard = ({ task }) => {
   return (
     <div 
       ref={setNodeRef} style={style} {...listeners} {...attributes}
+      onClick={(e) => {
+        // Prevent clicking while dragging
+        if (!isDragging) {
+          document.dispatchEvent(new CustomEvent('open-task-details', { detail: task }));
+        }
+      }}
       className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-200 cursor-grab active:cursor-grabbing mb-3 transition-colors"
     >
       <div className="flex justify-between items-start mb-2">
@@ -80,13 +86,20 @@ const Tasks = () => {
   const [selectedProject, setSelectedProject] = useState(projectId || '');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ title: '', description: '', priority: 'Medium', deadline: '', group: '' }); // NEW: Added group
+  const [selectedTaskDetails, setSelectedTaskDetails] = useState(null);
+  const [submissionText, setSubmissionText] = useState('');
+  const [evaluationFeedback, setEvaluationFeedback] = useState('');
+  const { user } = useAuthStore();
+  const [formData, setFormData] = useState({ title: '', description: '', priority: 'Medium', deadline: '', group: '' }); 
   
   const sensors = useSensors(useSensor(MouseSensor, { activationConstraint: { distance: 5 } }), useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }));
 
   useEffect(() => {
     fetchProjects();
     fetchGroups(); // NEW
+    const handleOpenTask = (e) => setSelectedTaskDetails(e.detail);
+    document.addEventListener('open-task-details', handleOpenTask);
+    return () => document.removeEventListener('open-task-details', handleOpenTask);
   }, []);
 
   useEffect(() => {
@@ -155,7 +168,26 @@ const Tasks = () => {
     } catch (e) { console.error(e); }
   };
 
-  const columns = ['To Do', 'In Progress', 'Done'];
+  const columns = ['To Do', 'In Progress', 'In Review', 'Done', 'Rejected'];
+
+  const handleSubmitTask = async () => {
+    if (!submissionText) return;
+    try {
+      await api.put(`/tasks/${selectedTaskDetails._id}/submit`, { submissionText });
+      setSelectedTaskDetails(null);
+      setSubmissionText('');
+      fetchTasks();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleEvaluateTask = async (status) => {
+    try {
+      await api.put(`/tasks/${selectedTaskDetails._id}/evaluate`, { status, evaluationFeedback });
+      setSelectedTaskDetails(null);
+      setEvaluationFeedback('');
+      fetchTasks();
+    } catch (e) { console.error(e); }
+  };
 
   return (
     <AnimatedPage className="space-y-6 h-full flex flex-col">
@@ -235,6 +267,77 @@ const Tasks = () => {
                 <button type="submit" className="px-5 py-2.5 font-semibold bg-primary text-white rounded-lg hover:bg-blue-600 shadow-sm transition">Create Task</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {selectedTaskDetails && (
+        <div className="fixed inset-0 bg-dark/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col transform transition-all">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+               <h2 className="text-xl font-bold text-dark">{selectedTaskDetails.title}</h2>
+               <span className="px-2 py-1 bg-gray-200 text-gray-800 text-xs font-bold rounded-md outline-none">{selectedTaskDetails.status}</span>
+            </div>
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div>
+                <h4 className="text-sm font-bold text-dark">Description</h4>
+                <p className="text-sm text-secondary mt-1 whitespace-pre-wrap">{selectedTaskDetails.description || 'No description provided.'}</p>
+              </div>
+
+              {selectedTaskDetails.submissionText && (
+                <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                  <h4 className="text-sm font-bold text-blue-900">Submission Details</h4>
+                  <p className="text-sm text-blue-800 mt-1">{selectedTaskDetails.submissionText}</p>
+                </div>
+              )}
+
+              {selectedTaskDetails.evaluationFeedback && (
+                <div className={`p-4 rounded-xl border ${selectedTaskDetails.status === 'Done' ? 'bg-green-50/50 border-green-100' : 'bg-red-50/50 border-red-100'}`}>
+                  <h4 className={`text-sm font-bold ${selectedTaskDetails.status === 'Done' ? 'text-green-900' : 'text-red-900'}`}>Evaluation Feedback</h4>
+                  <p className={`text-sm mt-1 ${selectedTaskDetails.status === 'Done' ? 'text-green-800' : 'text-red-800'}`}>{selectedTaskDetails.evaluationFeedback}</p>
+                </div>
+              )}
+
+              {/* Action Area based on Role and Status */}
+              {(user?.role === 'Student' || user?.role === 'Team Leader') && (selectedTaskDetails.status === 'In Progress' || selectedTaskDetails.status === 'Rejected') && (
+                <div className="mt-4 border-t border-gray-100 pt-4">
+                  <label className="block text-sm font-bold text-dark mb-2">Submit Task Work</label>
+                  <textarea 
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-1 focus:ring-primary transition min-h-[100px]" 
+                    placeholder="Enter commit URLs, drive links, or notes..."
+                    value={submissionText}
+                    onChange={(e) => setSubmissionText(e.target.value)}
+                  ></textarea>
+                  <button onClick={handleSubmitTask} disabled={!submissionText} className="mt-3 w-full py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-blue-600 transition disabled:opacity-50">
+                    Submit Task
+                  </button>
+                </div>
+              )}
+
+              {user?.role === 'Admin' && selectedTaskDetails.status === 'In Review' && (
+                <div className="mt-4 border-t border-gray-100 pt-4">
+                  <label className="block text-sm font-bold text-dark mb-2">Evaluate Submission</label>
+                  <textarea 
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-1 focus:ring-primary transition min-h-[100px]" 
+                    placeholder="Enter feedback for the students..."
+                    value={evaluationFeedback}
+                    onChange={(e) => setEvaluationFeedback(e.target.value)}
+                  ></textarea>
+                  <div className="flex space-x-3 mt-3">
+                    <button onClick={() => handleEvaluateTask('Done')} disabled={!evaluationFeedback} className="flex-1 py-2.5 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition disabled:opacity-50">
+                      Approve
+                    </button>
+                    <button onClick={() => handleEvaluateTask('Rejected')} disabled={!evaluationFeedback} className="flex-1 py-2.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition disabled:opacity-50">
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+            </div>
+            <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+               <button onClick={() => { setSelectedTaskDetails(null); setSubmissionText(''); setEvaluationFeedback(''); }} className="px-5 py-2 font-semibold text-secondary hover:bg-gray-200 rounded-lg transition">Close</button>
+            </div>
           </div>
         </div>
       )}

@@ -136,6 +136,7 @@ const ProjectDetails = () => {
                     </div>
                     <p className="text-secondary text-sm font-medium">
                       Completed {gp.completedTasks} out of {gp.totalTasks} assigned tasks
+                      {gp.inReviewTasks > 0 && <span className="ml-2 text-yellow-600 font-bold bg-yellow-50 px-2 py-1 rounded">({gp.inReviewTasks} in review)</span>}
                     </p>
                   </div>
                 ))}
