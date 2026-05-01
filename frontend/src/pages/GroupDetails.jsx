@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, CheckSquare, MessageSquare, Send, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { Users, CheckSquare, MessageSquare, Plus, Send, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import api from '../api/axiosConfig';
 import { useAuthStore } from '../store/authStore';
 import io from 'socket.io-client';
@@ -56,6 +56,21 @@ const GroupDetails = () => {
       console.error('Failed to fetch tasks', error);
     }
   };
+
+  const [assignedProjects, setAssignedProjects] = useState([]);
+  const fetchAssignedProjects = async () => {
+    try {
+      const { data } = await api.get('/projects');
+      const filtered = data.filter(p => p.assignedGroups?.some(g => g._id === id || g === id));
+      setAssignedProjects(filtered);
+    } catch (error) {
+      console.error('Failed to fetch assigned projects', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAssignedProjects();
+  }, [id]);
 
   const fetchComments = async () => {
     try {
@@ -133,6 +148,49 @@ const GroupDetails = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+             <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><CheckSquare className="text-green-500"/> Assigned Projects</h2>
+             {assignedProjects.length === 0 ? (
+               <p className="text-secondary text-sm">No projects assigned to this group yet.</p>
+             ) : (
+               <div className="space-y-3">
+                 {assignedProjects.map(project => (
+                   <div key={project._id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50 flex justify-between items-center group-card">
+                     <div>
+                       <h3 className="font-bold text-dark">{project.name}</h3>
+                       <p className="text-xs text-secondary mt-1 max-w-sm truncate">{project.description}</p>
+                     </div>
+                     {(user?.role === 'Admin' || user?.role === 'Team Leader') && (
+                       <button 
+                         onClick={() => {
+                           const title = window.prompt(`Assign new task for ${project.name}: Enter task title`);
+                           if(title) {
+                             api.post('/tasks', {
+                               title,
+                               project: project._id,
+                               group: group._id,
+                               status: 'To Do',
+                               deadline: new Date(Date.now() + 7*24*60*60*1000).toISOString() // default 7 days
+                             }).then(() => {
+                               fetchTasks();
+                               alert('Task assigned successfully!');
+                             }).catch(e => {
+                               console.error(e);
+                               alert('Failed to assign task');
+                             });
+                           }
+                         }}
+                         className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg text-sm font-bold transition flex items-center gap-1"
+                       >
+                         <Plus size={16}/> Quick Task
+                       </button>
+                     )}
+                   </div>
+                 ))}
+               </div>
+             )}
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><CheckSquare className="text-green-500"/> Group Tasks</h2>
              {tasks.length === 0 ? (
                <p className="text-secondary text-sm">No tasks assigned to this group yet.</p>
